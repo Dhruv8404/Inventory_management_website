@@ -46,19 +46,16 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'inventory',
 ]
-import os
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'inventory_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'pgadmin'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': 'inventory_db',
+        'USER': 'postgres',
+        'PASSWORD': 'pgadmin',
+        'HOST': 'localhost',  # or the correct AWS RDS/private IP
+        'PORT': '5432',
     }
 }
-
 
 CACHES = {
     'default': {
