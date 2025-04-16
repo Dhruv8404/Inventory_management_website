@@ -45,7 +45,7 @@
 <body>
     <div class="login-container">
         <h3 class="text-center mb-3">Login</h3>
-        <form method="post" action="{% url 'login' %}">
+        <form method="post" action="{% url 'login_template' %}">
             {% csrf_token %}
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>

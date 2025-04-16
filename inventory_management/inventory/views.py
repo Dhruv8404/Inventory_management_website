@@ -30,76 +30,79 @@ from decimal import Decimal
 
 
 
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
+from django.views.generic import TemplateView
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .models import Item, CustomUser
+from rest_framework import viewsets
+from .serializers import ItemSerializer
+from rest_framework.permissions import IsAuthenticated
 
 
+# Inventory API View
 class ItemViewSet(viewsets.ModelViewSet):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
     permission_classes = [IsAuthenticated]
 
-
-
-from django.shortcuts import redirect
-from rest_framework import generics
-from django.contrib.auth import login
-
-class RegisterView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = UserSerializer
-
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-
-        if response.status_code == 201:  # ✅ Check if user was created successfully
-            username = request.data.get('username')
-            user = CustomUser.objects.get(username=username)
-
-            # 🔒 Store user session (automatic login)
-            request.session['user_id'] = user.id
-            request.session['username'] = user.username  # Optional: Store username
-
-            return redirect('inventory_list')  # 🔄 Redirect to home page
-
-        return response
-
-
-# API View for Login
-from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib.auth.models import User
+from django.views.generic import TemplateView
+from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate
-
-class LoginView(TokenObtainPairView):
-    permission_classes = (AllowAny,)
-
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-
-        if response.status_code == 200:  # If login is successful
-            username = request.data.get('username')
-            user = authenticate(username=username, password=request.data.get('password'))
-            
-            if user:
-                request.session['user_id'] = user.id  # Store user ID in session
-                request.session['username'] = user.username  # Optional: Store username
-                
-            return redirect('inventory_list')  # Redirect to home page
-        
-        return response
+from django.contrib import messages
 
 
-# Template View for Registration Form
+# ✅ Registration via Template
 class RegisterTemplateView(TemplateView):
     template_name = 'inventory/register.html'
 
-# Template View for Login Form
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
+
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists")
+            return render(request, self.template_name)
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+
+        request.session['user_id'] = user.id
+        request.session['username'] = user.username
+
+        return redirect('inventory_list')
+
+
+# ✅ Login via Template
 class LoginTemplateView(TemplateView):
     template_name = 'inventory/login.html'
 
-from django.shortcuts import redirect
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
 
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            request.session['user_id'] = user.id
+            request.session['username'] = user.username
+            return redirect('inventory_list')
+        else:
+            messages.error(request, "Invalid credentials")
+            return render(request, self.template_name)
+
+
+# ✅ Logout View
 def logout_view(request):
-    request.session.flush()  # ❌ Clear session (logs the user out)
-    return redirect('login_template')  # 🔄 Redirect to login page
+    request.session.flush()
+    return redirect('login_template')
 
 
 from django.shortcuts import render, redirect
@@ -559,3 +562,81 @@ def bill_page(request, bill_number=None):
 
     return render(request, "inventory/bill_page.html", {"bill": bill_data})
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.http import HttpResponse
+from django.urls import reverse
+
+@csrf_exempt
+@require_POST
+def send_bill_email(request):
+    bill_number = request.POST.get("bill_number")
+    email = request.POST.get("email")
+
+    # Fetch bill data
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT cb.customer_name, cb.phno, cb.item_id, ii.item_name, ii.category, 
+                   cb.quantity, cb.price, cb.total_price, cb.current_date 
+            FROM customer_bill cb
+            JOIN inventory_items ii ON cb.item_id = ii.item_id
+            WHERE cb.bill_number = %s
+        """, [bill_number])
+        bill_details = cursor.fetchall()
+
+    if not bill_details:
+        return HttpResponse("❌ Bill not found.", status=404)
+
+    # Format HTML email content
+    customer_name = bill_details[0][0]
+    phno = bill_details[0][1]
+    date = bill_details[0][8]
+    total_amount = sum(row[7] for row in bill_details)
+
+    table_rows = ""
+    for row in bill_details:
+        table_rows += f"""
+        <tr>
+            <td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td>
+            <td>{row[5]}</td><td>₹{row[6]}</td><td>₹{row[7]}</td>
+        </tr>
+        """
+
+    html_content = f"""
+    <h2>Bill Number: {bill_number}</h2>
+    <p><strong>Customer:</strong> {customer_name}</p>
+    <p><strong>Phone:</strong> {phno}</p>
+    <p><strong>Date:</strong> {date}</p>
+    <h4>Items:</h4>
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
+        <tr>
+            <th>Item ID</th><th>Item Name</th><th>Category</th>
+            <th>Quantity</th><th>Price</th><th>Total Price</th>
+        </tr>
+        {table_rows}
+    </table>
+    <h3>Total Amount: ₹{total_amount}</h3>
+    """
+
+    try:
+        sender_email = 'pateldhruv8404@gmail.com'
+        sender_password = 'shtaftkwdvkzxvko'  # App password
+
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = email
+        msg['Subject'] = f'Your Bill #{bill_number}'
+        msg.attach(MIMEText(html_content, 'html'))
+
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+
+        return HttpResponse("✅ Bill sent to email successfully!")
+
+    except Exception as e:
+        return HttpResponse(f"❌ Failed to send email: {str(e)}", status=500)

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import RegisterView, LoginView, RegisterTemplateView, LoginTemplateView , ItemViewSet, home 
+from .views import  RegisterTemplateView, LoginTemplateView , ItemViewSet, home 
 from .import views
 from inventory.views import update_inventory_item
 from .views import bill_form, get_item_details, save_bill, bill_page
@@ -25,8 +25,7 @@ urlpatterns = [
     path("bill_page/<int:bill_number>/", bill_page, name="bill_page_with_number"),  # Get bill with number
     path('bill/', bill_form, name='bill_form'),
     path('get-item-details/<int:item_id>/', get_item_details, name='get_item_details'),
-    path('save-bill/', save_bill, name='save_bill'),    path('register/', RegisterView.as_view(), name='register'),
-    path('login/', LoginView.as_view(), name='login'),
+    path('save-bill/', save_bill, name='save_bill'),  
     path('register-template/', RegisterTemplateView.as_view(), name='register_template'),
     path('login-template/', LoginTemplateView.as_view(), name='login_template'),
     path('home/', home, name='home'),
@@ -36,7 +35,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('delete/<int:item_id>/', views.delete_inventory_item, name='delete_inventory_item'),
     path('update/<int:item_id>/', update_inventory_item, name='update_inventory_item'),
-
+    path('send_bill_email/', views.send_bill_email, name='send_bill_email'),
 
     
 ]

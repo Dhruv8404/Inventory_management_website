@@ -293,7 +293,26 @@
             <button class="btn btn-success mt-3" onclick="printBill()">
                 <i class="fas fa-print"></i> Print Bill
             </button>
-
+            {% if bill %}
+            <div class="card" id="bill-content">
+                <div class="card-body">
+                    <!-- Existing bill content... -->
+            
+                    <form method="POST" action="{% url 'send_bill_email' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="bill_number" value="{{ bill.bill_number }}">
+                        <div class="mb-3 mt-4">
+                            <label for="email" class="form-label"><strong>Send this bill to email:</strong></label>
+                            <input type="email" name="email" class="form-control" placeholder="Enter customer email" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-envelope"></i> Send Email
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
         {% elif error %}
             <p class="text-danger">{{ error }}</p>
         {% endif %}
