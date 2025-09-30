@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sales & Inventory</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        
+        .dark-mode {
+            background-color: #1e1e1e;
+            color: white;
+        }
+
+        .dark-mode .sidebar {
+            background: #121212;
+        }
+        
+        .dark-mode .sidebar a {
+            background: #222;
+        }
+
+        .dark-mode .sidebar a:hover {
+            background: #444;
+        }
+        
+        .dark-mode .content, .dark-mode .dashboard-header, .dark-mode .chart-card {
+            background: #333;
+            color: white;
+        }
+        
+        .dark-mode .stats-box {
+            background: linear-gradient(135deg, #ffcc00, #ff9900);
+        }
+        
+        .dark-mode .chart-card canvas {
+            background: #222;
+        }
+        
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #002b5c;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-size: 22px;
+        }
+        
+        .sidebar a {
+            width: 100%;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: 0.3s;
+            font-size: 16px;
+            background: #003b80;
+        }
+        
+        .sidebar a:hover {
+            background: #0056b3;
+        }
+        
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        
+        .content {
+            margin-left: 280px;
+            padding: 20px;
+            width: calc(100% - 280px);
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        
+        .chart-card {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 450px;
+            max-width: 600px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chart-card canvas {
+            max-width: 100% !important;
+            max-height: 350px !important;
+        }
+        
+        
+        .stats-box {
+            background: linear-gradient(135deg, #ffcc00, #ff9900);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .dark-mode .btn-dark {
+            background: #ffcc00;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+        <a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a>
+        <a href="{% url 'inventory_list' %}"><i class="fas fa-boxes"></i> Inventory</a>
+        <a href="{% url 'add_inventory_item' %}" class="active"><i class="fas fa-plus-circle"></i> Add Item</a>
+        <a href="{% url 'bill_page' %}" class="active"><i class="fas fa-file-invoice"></i> Bill</a>
+        <a href="{% url 'bill_form' %}"><i class="fas fa-receipt"></i> Bill Form</a>
+        <a href="{% url 'login_template' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a href="{% url 'register_template' %}"><i class="fas fa-user-plus"></i> Register</a>
+        <a href="{% url 'logout' %}" style="margin-top: auto; background: #d9534f;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+    
+    <div class="content">
+        <div class="dashboard-header">
+            <h2>Sales & Inventory Overview</h2>
+            <button onclick="toggleDarkMode()" class="btn btn-dark" id="darkModeBtn">Dark Mode</button>
+        </div>
+
+        <div class="stats-box">
+            <h4>Total Sales: {{ total_sales }}Rs</h4>
+            <h4>Expiring Soon: {{ expiring_items_count }} Items</h4>            
+            
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-card">
+                <h2>Monthly Sales Analysis</h2>
+                <canvas id="salesChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h2>Inventory Expiration Status</h2>
+                <canvas id="expiryChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h2>Category Sales Analysis</h2>
+                <canvas id="categorySalesChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h2>Top Products in Selected Category</h2>
+                <select id="categorySelect">
+                    {% for category in all_categories %}
+                        <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+                
+                <canvas id="topProductsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        // Monthly Sales Data
+        const salesData = JSON.parse('{{ sales_data|escapejs }}');
+        const salesLabels = Object.keys(salesData);
+        const salesValues = Object.values(salesData);
+
+        new Chart(document.getElementById('salesChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: salesLabels,
+                datasets: [{
+                    label: 'Total Sales',
+                    data: salesValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        // Inventory Expiration Status
+        const expiryData = JSON.parse('{{ expiry_data|escapejs }}');
+        const expiryLabels = Object.keys(expiryData);
+        const expiryValues = Object.values(expiryData);
+
+        new Chart(document.getElementById('expiryChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: expiryLabels,
+                datasets: [{
+                    data: expiryValues,
+                    backgroundColor: ['#ff4d4d', '#ffa500', '#28a745'],
+                    borderColor: ['#b30000', '#cc8400', '#1e7e34'],
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // Category Sales Analysis
+        const categorySalesData = JSON.parse('{{ category_sales_data|escapejs }}');
+        const categoryLabels = Object.keys(categorySalesData);
+        const categoryValues = Object.values(categorySalesData);
+
+        new Chart(document.getElementById('categorySalesChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    label: 'Total Sales by Category',
+                    data: categoryValues,
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        // Top Products in Selected Category
+        let topProductsChart = new Chart(document.getElementById('topProductsChart').getContext('2d'), {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Top Products', data: [], backgroundColor: 'rgba(75, 192, 192, 0.7)' }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        document.getElementById('categorySelect').addEventListener('change', function() {
+            let selectedCategory = this.value;
+            
+            fetch(`/get_top_products/?category=${selectedCategory}`)
+                .then(response => response.json())
+                .then(data => {
+                    topProductsChart.data.labels = Object.keys(data);
+                    topProductsChart.data.datasets[0].data = Object.values(data);
+                    topProductsChart.update();
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+    
+            // Save preference in localStorage
+            if (document.body.classList.contains("dark-mode")) {
+                localStorage.setItem("theme", "dark");
+                document.getElementById("darkModeBtn").textContent = "Light Mode";
+            } else {
+                localStorage.setItem("theme", "light");
+                document.getElementById("darkModeBtn").textContent = "Dark Mode";
+            }
+        }
+    
+        // Load theme preference on page load
+        window.onload = function () {
+            if (localStorage.getItem("theme") === "dark") {
+                document.body.classList.add("dark-mode");
+                document.getElementById("darkModeBtn").textContent = "Light Mode";
+            }
+        };
+    </script>
+</body>
+
+</html>

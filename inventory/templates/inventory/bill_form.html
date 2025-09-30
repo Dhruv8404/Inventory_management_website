@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Form</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #002b5c;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .sidebar h2 {
+            font-size: 22px;
+            margin-bottom: 30px;
+        }
+        
+        .sidebar a {
+            width: 100%;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: 0.3s;
+            font-size: 16px;
+            background: #003b80;
+        }
+        
+        .sidebar a:hover, .sidebar a.active {
+            background: #0056b3;
+        }
+        
+        .sidebar a i {
+            margin-right: 10px;
+        }
+        
+        /* Content */
+        .content {
+            margin-left: 280px; 
+            padding: 20px;
+            width: calc(100% - 280px);
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-control {
+            border-radius: 10px;
+        }
+        .btn-primary, .btn-success {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* Dark Mode Styles */
+        .dark-mode {
+            background: #1e1e1e !important;
+            color: #f5f5f5 !important;
+        }
+        .dark-mode .sidebar {
+            background: #121212;
+        }
+        .dark-mode .sidebar a {
+            background: #333;
+            color: #ddd;
+        }
+        .dark-mode .sidebar a:hover {
+            background: #444;
+        }
+        .dark-mode .content {
+            background: #181818;
+            color: #e0e0e0;
+        }
+        .dark-mode .dashboard-header {
+            background: #222;
+        }
+        .dark-mode .form-control {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        .dark-mode .btn-dark {
+            background: #ffcc00;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+       
+        <a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a>
+        <a href="{% url 'inventory_list' %}"><i class="fas fa-boxes"></i> Inventory</a>
+        <a href="{% url 'add_inventory_item' %}"><i class="fas fa-plus-circle"></i> Add Item</a>
+        <a href="{% url 'bill_page' %}"><i class="fas fa-file-invoice"></i> Bill</a>
+        <a href="{% url 'bill_form' %}"><i class="fas fa-receipt"></i> Bill Form</a>
+        <a href="{% url 'login_template' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a href="{% url 'register_template' %}"><i class="fas fa-user-plus"></i> Register</a>
+        <a href="{% url 'logout' %}" style="margin-top: auto; background: #d9534f;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content">
+        <div class="dashboard-header">
+            <h2>Billing Form</h2>
+            <button onclick="toggleDarkMode()" class="btn btn-dark" id="darkModeBtn">Dark Mode</button>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Customer Name</label>
+                    <input type="text" class="form-control" id="customerName">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phno" name="phno"
+                           pattern="[0-9]{10}" maxlength="10" minlength="10"
+                           required >
+                    <div class="invalid-feedback">
+                        Please enter a valid 10-digit phone number.
+                    </div>
+                </div>
+                
+               
+                
+                <div class="mb-3">
+                    <label class="form-label">Item ID</label>
+                    <input type="number" class="form-control" id="item_id">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Item Name</label>
+                    <input type="text" class="form-control" id="item_name" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Category</label>
+                    <input type="text" class="form-control" id="category" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Price</label>
+                    <input type="number" class="form-control" id="price" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" class="form-control" id="quantity">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Total Price</label>
+                    <input type="number" class="form-control" id="total_price" disabled>
+                </div>
+                <button class="btn btn-primary" id="addItem">Add</button>
+            </div>
+            <div class="col-md-6">
+                <h3>Added Items</h3>
+                <ul class="list-group" id="itemList"></ul>
+                <h4>Total: ₹<span id="totalBillAmount">0.00</span></h4>
+                <button class="btn btn-success" id="generateBill">Generate Bill</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let availableStock = 0; // Store available stock
+            let isExpired = false;  // Track if item is expired
+            let totalBill = 0;  // Track total bill amount
+        
+            // Fetch item details when Item ID changes
+            $('#item_id').on('change', function () {
+                let itemId = $(this).val();
+                $.ajax({
+                    url: `/get-item-details/${itemId}/`,
+                    method: 'GET',
+                    success: function (response) {
+                        $('#item_name').val(response.item_name);
+                        $('#category').val(response.category);
+                        $('#price').val(response.price);
+                        availableStock = response.quantity; // Store available stock
+        
+                        // Expiry check
+                        let expiryDate = new Date(response.expiration_date);
+                        let today = new Date();
+                        isExpired = expiryDate < today; // If expired, set flag to true
+                        
+                        if (isExpired) {
+                            alert("This product is expired and cannot be added!");
+                        }
+                    },
+                    error: function () {
+                        alert("Item not found.");
+                    }
+                });
+            });
+        
+            // Calculate total price when quantity changes
+            $('#quantity').on('input', function () {
+                let price = parseFloat($('#price').val()) || 0;
+                let quantity = parseInt($(this).val()) || 0;
+                let totalPrice = price * quantity;
+                $('#total_price').val(totalPrice.toFixed(2));
+            });
+        
+            // Add item to the list with stock and expiry check
+            $('#addItem').on('click', function () {
+                let itemId = $('#item_id').val();
+                let itemName = $('#item_name').val();
+                let price = parseFloat($('#price').val()) || 0;
+                let quantity = parseInt($('#quantity').val()) || 0;
+                let totalPrice = price * quantity;
+        
+                // Check if item is expired
+                if (isExpired) {
+                    alert("This product is expired and cannot be added!");
+                    return;
+                }
+        
+                // Check stock availability
+                if (quantity > availableStock) {
+                    alert(`Only ${availableStock} items left in stock!`);
+                    return;
+                }
+        
+                if (itemId && quantity > 0) {
+                    let existingItem = $(`#itemList li[data-itemid="${itemId}"]`);
+        
+                    if (existingItem.length > 0) {
+                        // Update existing item
+                        let oldQuantity = parseInt(existingItem.data("quantity"));
+                        let oldTotalPrice = parseFloat(existingItem.data("totalprice"));
+        
+                        let newQuantity = oldQuantity + quantity;
+                        let newTotalPrice = price * newQuantity;
+        
+                        // Update stock before modifying total
+                        availableStock -= quantity;
+        
+                        // Update total bill
+                        totalBill -= oldTotalPrice;
+                        totalBill += newTotalPrice;
+                        updateTotalBill();
+        
+                        // Update the UI
+                        existingItem.data("quantity", newQuantity);
+                        existingItem.data("totalprice", newTotalPrice);
+                        existingItem.html(`
+                            ${itemName} (${newQuantity} x ₹${price.toFixed(2)}) - <strong>₹${newTotalPrice.toFixed(2)}</strong>
+                            <button class="btn btn-danger btn-sm remove-item">Remove</button>
+                        `);
+                    } else {
+                        // Add new item
+                        let listItem = `<li class="list-group-item d-flex justify-content-between align-items-center"
+                            data-itemid="${itemId}" data-quantity="${quantity}" data-price="${price}" data-totalprice="${totalPrice}">
+                            ${itemName} (${quantity} x ₹${price.toFixed(2)}) - <strong>₹${totalPrice.toFixed(2)}</strong>
+                            <button class="btn btn-danger btn-sm remove-item">Remove</button>
+                        </li>`;
+        
+                        $('#itemList').append(listItem);
+        
+                        // Update stock before modifying total
+                        availableStock -= quantity;
+        
+                        totalBill += totalPrice; // Update total bill
+                        updateTotalBill(); // Update total display
+                    }
+        
+                    // Clear fields after adding
+                    $('#item_id, #item_name, #category, #price, #quantity, #total_price').val('');
+                } else {
+                    alert("Please enter a valid Item ID and quantity.");
+                }
+            });
+        
+            // Remove item from list and restore stock
+            $(document).on('click', '.remove-item', function () {
+                let removedQuantity = parseInt($(this).parent().data("quantity")) || 0;
+                let removedTotalPrice = parseFloat($(this).parent().data("totalprice")) || 0;
+        
+                availableStock += removedQuantity; // Restore stock
+                totalBill -= removedTotalPrice; // Deduct from total bill
+                updateTotalBill(); // Update total display
+                $(this).parent().remove();
+            });
+        
+            // Function to update total bill display
+            function updateTotalBill() {
+                $('#totalBillAmount').text(totalBill.toFixed(2));
+            }
+        
+            // Send bill data to backend and redirect to bill page
+            $('#generateBill').on('click', function () {
+                let customerName = $('#customerName').val();
+                let phno = $('#phno').val();
+                let items = [];
+        
+                $('#itemList li').each(function () {
+                    let itemId = $(this).data("itemid");
+                    let quantity = $(this).data("quantity");
+                    let price = $(this).data("price");
+                    let totalPrice = $(this).data("totalprice");
+        
+                    items.push({
+                        itemid: itemId,
+                        quantity: quantity,
+                        price: price,
+                        totalprice: totalPrice
+                    });
+                });
+        
+                if (!customerName || !phno || items.length === 0) {
+                    alert("Please provide customer details and add at least one item.");
+                    return;
+                }
+        
+                $.ajax({
+                    url: '/save-bill/',  // Backend URL
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        customer_name: customerName,
+                        phno: phno,
+                        items: items,
+                        total_bill: totalBill // Send total bill amount
+                    }),
+                    success: function (response) {
+                        alert("Bill generated successfully!");
+                        window.location.href = `/bill_page/${response.bill_number}/`;  // ✅ Redirect to Bill Page
+                    },
+                    error: function () {
+                        alert("Error saving bill. Please try again.");
+                    }
+                });
+            });
+        });
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+
+            // Save preference in localStorage
+            if (document.body.classList.contains("dark-mode")) {
+                localStorage.setItem("theme", "dark");
+                document.getElementById("darkModeBtn").textContent = "Light Mode";
+            } else {
+                localStorage.setItem("theme", "light");
+                document.getElementById("darkModeBtn").textContent = "Dark Mode";
+            }
+        }
+
+        // Load theme preference on page load
+        window.onload = function () {
+            if (localStorage.getItem("theme") === "dark") {
+                document.body.classList.add("dark-mode");
+                document.getElementById("darkModeBtn").textContent = "Light Mode";
+            }
+        };
+    </script>
+    <script>
+        document.getElementById("phno").addEventListener("input", function (e) {
+            this.value = this.value.replace(/[^0-9]/g, "");  // Allow only numbers
+        });
+    </script>
+</body>
+</html>
