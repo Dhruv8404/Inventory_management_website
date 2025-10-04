@@ -51,7 +51,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'inventory_db',
         'USER': 'postgres',
-        'PASSWORD': 'pgadmin',
+        'PASSWORD': 'newpassword',
         'HOST': 'localhost',  # or the correct AWS RDS/private IP
         'PORT': '5432',
     }
