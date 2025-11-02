@@ -75,9 +75,32 @@ tzdata==2023.3
 urllib3==2.0.7
 uv==0.1.44
 validator-collection==1.5.0
+wheel==0.41.2
+>>>>>>> d5def503819f244f8b5fb91dbb85a532ff91f152
+gunicorn==21.2.0
+python-dotenv==1.0.0
+whitenoise==6.6.0
+dj-database-url==2.1.0
+<<<<<<< HEAD
+pypiwin32; sys_platform == "win32"
+=======
+>>>>>>> d5def503819f244f8b5fb91dbb85a532ff91f152
+=======
 Werkzeug==3.0.1
+wheel==0.41.2
 gunicorn==21.2.0
 python-dotenv==1.0.0
 whitenoise==6.6.0
 dj-database-url==2.1.0
 pypiwin32; sys_platform == "win32"
+=======
+wheel==0.41.2
+>>>>>>> d5def503819f244f8b5fb91dbb85a532ff91f152
+gunicorn==21.2.0
+python-dotenv==1.0.0
+whitenoise==6.6.0
+dj-database-url==2.1.0
+<<<<<<< HEAD
+pypiwin32; sys_platform == "win32"
+=======
+>>>>>>> d5def503819f244f8b5fb91dbb85a532ff91f152
