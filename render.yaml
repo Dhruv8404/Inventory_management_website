@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: free
     buildCommand: docker build -t inventory-management .
-    startCommand: gunicorn --bind 0.0.0.0:8000 inventory_management.wsgi:application
+    startCommand: PYTHONPATH=/opt/render/project/src gunicorn --bind 0.0.0.0:8000 inventory_management.wsgi:application
     envVars:
       - key: DEBUG
         value: False

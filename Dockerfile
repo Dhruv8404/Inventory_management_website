@@ -35,5 +35,8 @@ RUN python manage.py migrate
 # Expose port
 EXPOSE 8000
 
+# Set PYTHONPATH to include the parent directory
+ENV PYTHONPATH=/app
+
 # Run the application with Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "inventory_management.wsgi:application"]
