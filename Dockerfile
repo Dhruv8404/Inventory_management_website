@@ -27,10 +27,10 @@ COPY . .
 COPY .env .env
 
 # Collect static files
-RUN python manage.py collectstatic --noinput
+RUN DJANGO_SETTINGS_MODULE=settings python manage.py collectstatic --noinput
 
 # Run migrations
-RUN python manage.py migrate
+RUN DJANGO_SETTINGS_MODULE=settings python manage.py migrate
 
 # Expose port
 EXPOSE 8000
