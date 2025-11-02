@@ -530,24 +530,26 @@ def get_item_details(request, item_id):
 from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
 from django.db import connection
+from django.core.mail import send_mail
+from django.conf import settings
 
-def bill_page(request, bill_number=None): 
-    if not request.session.get('user_id'):  
+def bill_page(request, bill_number=None):
+    if not request.session.get('user_id'):
         return redirect('login_template')  # Redirect to login if session does not exist
 
     today = datetime.today().date()
-    next_month = today + timedelta(days=30)     
+    next_month = today + timedelta(days=30)
 
     # Get bill_number from query parameters if available
-    bill_number = request.GET.get("bill_number", bill_number)  
+    bill_number = request.GET.get("bill_number", bill_number)
 
     if not bill_number:  # No bill number provided
         return render(request, "inventory/bill_page.html", {"bill": None})
 
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT cb.customer_name, cb.phno, cb.item_id, ii.item_name, ii.category, 
-                   cb.quantity, cb.price, cb.total_price, cb.current_date 
+            SELECT cb.customer_name, cb.phno, cb.item_id, ii.item_name, ii.category,
+                   cb.quantity, cb.price, cb.total_price, cb.current_date
             FROM customer_bill cb
             JOIN inventory_items ii ON cb.item_id = ii.item_id
             WHERE cb.bill_number = %s
@@ -572,6 +574,44 @@ def bill_page(request, bill_number=None):
         "total_quantity": total_quantity,
         "total_amount": total_amount
     }
+
+    # Send bill via email if requested
+    if request.method == 'POST' and 'send_email' in request.POST:
+        customer_email = request.POST.get('customer_email')
+        if customer_email:
+            subject = f"Bill #{bill_number} - {bill_data['customer_name']}"
+            message = f"""
+            Dear {bill_data['customer_name']},
+
+            Here is your bill details:
+
+            Bill Number: {bill_number}
+            Date: {bill_data['date']}
+            Phone: {bill_data['phno']}
+
+            Items:
+            """
+            for item in bill_data['items']:
+                message += f"- {item['item_name']} ({item['category']}): {item['quantity']} x {item['price']} = {item['total_price']}\n"
+
+            message += f"""
+            Total Quantity: {total_quantity}
+            Total Amount: {total_amount}
+
+            Thank you for your business!
+            """
+
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [customer_email],
+                    fail_silently=False,
+                )
+                bill_data['email_sent'] = True
+            except Exception as e:
+                bill_data['email_error'] = str(e)
 
     return render(request, "inventory/bill_page.html", {"bill": bill_data})
 

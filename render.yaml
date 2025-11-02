@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: inventory-management
+    runtime: docker
+    plan: free
+    buildCommand: docker build -t inventory-management .
+    startCommand: gunicorn --bind 0.0.0.0:8000 inventory_management.wsgi:application
+    envVars:
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: inventory-management.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: inventory-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: inventory-redis
+          property: connectionString
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+
+databases:
+  - name: inventory-db
+    databaseName: inventory_db
+    user: postgres
+
+redis:
+  - name: inventory-redis
+    ipAllowList: []
