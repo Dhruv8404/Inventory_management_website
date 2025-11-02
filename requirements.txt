@@ -45,8 +45,8 @@ packaging==23.2
 pandas>=2.0
 pg8000==1.30.2
 pillow>=10.3
-# Use psycopg2 only, let pip determine the version (it will compile against libpq-dev)
-psycopg2
+# Use psycopg2-binary for Docker compatibility (precompiled, no build dependencies needed)
+psycopg2-binary
 PyJWT==2.9.0
 pymongo==4.10.1
 pyparsing==3.1.1
