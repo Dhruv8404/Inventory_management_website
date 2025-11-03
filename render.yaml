@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: free
     buildCommand: docker build -t inventory-management .
-    startCommand: PYTHONPATH=/opt/render/project/src gunicorn --bind 0.0.0.0:8000 wsgi:application
+    startCommand: PYTHONPATH=/opt/render/project/src gunicorn --bind 0.0.0.0:8000 inventory.wsgi:application
     envVars:
       - key: DEBUG
         value: False
@@ -21,6 +21,8 @@ services:
           type: redis
           name: inventory-redis
           property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: inventory.settings
       - key: EMAIL_HOST_USER
         sync: false
       - key: EMAIL_HOST_PASSWORD
