@@ -107,7 +107,7 @@ LOGGING = {
         },
     },
 }
-ROOT_URLCONF = 'inventory.urls'
+ROOT_URLCONF = 'urls'
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -128,7 +128,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'inventory.wsgi.application'
+WSGI_APPLICATION = 'wsgi.application'
 
 
 # Database

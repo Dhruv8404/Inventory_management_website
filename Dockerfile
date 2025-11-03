@@ -39,4 +39,4 @@ EXPOSE 8000
 ENV PYTHONPATH=/app
 
 # Run the application with Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "inventory.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "wsgi:application"]
