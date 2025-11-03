@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: free
     buildCommand: docker build -t inventory-management .
-    startCommand: gunicorn --bind 0.0.0.0:8000 --chdir inventory wsgi:application
+    startCommand: gunicorn --bind 0.0.0.0:8000 inventory.wsgi:application
     envVars:
       - key: DEBUG
         value: False
@@ -23,6 +23,8 @@ services:
           property: connectionString
       - key: DJANGO_SETTINGS_MODULE
         value: inventory.settings
+      - key: PYTHONPATH
+        value: /app
       - key: EMAIL_HOST_USER
         sync: false
       - key: EMAIL_HOST_PASSWORD
